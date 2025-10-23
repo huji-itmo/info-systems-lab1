@@ -11,6 +11,12 @@ repositories {
 dependencies {
     implementation(kotlin("stdlib"))
 
+    // EclipseLink (JPA implementation)
+    implementation("org.eclipse.persistence:eclipselink:4.0.8") // or latest
+
+    // PostgreSQL JDBC driver
+    runtimeOnly("org.postgresql:postgresql:42.7.3")
+
     // https://mvnrepository.com/artifact/jakarta.platform/jakarta.jakartaee-api
     compileOnly("jakarta.platform:jakarta.jakartaee-api:11.0.0")
     compileOnly("jakarta.ws.rs:jakarta.ws.rs-api:4.0.0")
