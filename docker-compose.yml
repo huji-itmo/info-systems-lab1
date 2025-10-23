@@ -1,24 +1,24 @@
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    environment:
-      - NODE_ENV=production
-    # Uncomment the following lines if your Next.js app needs to access the backend
-    # depends_on:
-    #   - backend
-    # networks:
-    #   - app-network
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   environment:
+  #     - NODE_ENV=production
+  #   # Uncomment the following lines if your Next.js app needs to access the backend
+  #   # depends_on:
+  #   #   - backend
+  #   # networks:
+  #   #   - app-network
 
-  backup:
+  backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "8080:8080" # Adjust to your Gradle app's actual port
-    # networks:
-    #   - app-network
-# networks:
-#   app-network:
-#     driver: bridge
+      - "8080:8080"
+    networks:
+      - app-network
+networks:
+  app-network:
+    driver: bridge

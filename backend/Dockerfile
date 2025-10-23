@@ -1,27 +1,22 @@
 # Use Gradle builder image
-FROM gradle:8.7-jdk17 AS builder
-WORKDIR /app
+FROM gradle:8.14.3-jdk17-alpine AS builder
+WORKDIR /usr/src/
 
 # Copy Gradle files
-COPY gradle gradle
-COPY gradlew .
-COPY build.gradle.kts settings.gradle.kts .
+COPY settings.gradle.kts ./
 
 # Copy source code
-COPY src src
+COPY app app
 
 # Build the application
-RUN gradle build -x test --no-daemon
+RUN gradle war --no-daemon
 
-# Use JRE runtime image
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
+FROM payara/micro:6.2025.10-jdk17
 
-# Copy built JAR from builder stage
-COPY --from=builder /app/build/libs/*.jar app.jar
+# Copy the built WAR file from builder stage
+COPY --from=builder /usr/src/app/build/libs/*.war /opt/payara/app/app.war
 
-# Expose port (adjust to your app's port)
 EXPOSE 8080
 
-# Run the application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Deploy the application on startup
+CMD ["--deploy", "/opt/payara/app/app.war", "--port", "8080", "--contextroot", "/"]
