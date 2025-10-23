@@ -3,10 +3,10 @@ FROM gradle:8.14.3-jdk17-alpine AS builder
 WORKDIR /usr/src/
 
 # Copy Gradle files
-COPY settings.gradle.kts ./
+COPY backend/settings.gradle.kts ./
 
 # Copy source code
-COPY app app
+COPY backend/app app
 
 # Build the application
 RUN gradle war --no-daemon
