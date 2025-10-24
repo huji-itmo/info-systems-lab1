@@ -1,3 +1,5 @@
+package org.example.model
+
 enum class Weapon {
     BOLTGUN,
     HEAVY_BOLTGUN,

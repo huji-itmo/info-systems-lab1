@@ -1,7 +1,9 @@
 plugins {
     id("war")
-    kotlin("jvm") version "1.9.24"
-    application
+    kotlin("jvm") version "2.2.20"
+    kotlin("plugin.allopen") version "2.2.20"
+    kotlin("plugin.noarg") version "2.2.20"
+    kotlin("plugin.jpa") version "2.2.20"
 }
 
 repositories {
@@ -15,7 +17,7 @@ dependencies {
     implementation("org.eclipse.persistence:eclipselink:4.0.8") // or latest
 
     // PostgreSQL JDBC driver
-    runtimeOnly("org.postgresql:postgresql:42.7.3")
+    implementation("org.postgresql:postgresql:42.7.3")
 
     // https://mvnrepository.com/artifact/jakarta.platform/jakarta.jakartaee-api
     compileOnly("jakarta.platform:jakarta.jakartaee-api:11.0.0")
@@ -43,11 +45,20 @@ kotlin {
     jvmToolchain(17)
 }
 
-application {
-    // Define the main class for the application.
-    mainClass = "org.example.AppKt"
+allOpen {
+    annotation("jakarta.enterprise.context.ApplicationScoped")
+    annotation("jakarta.enterprise.context.RequestScoped")
+    annotation("jakarta.ws.rs.Path")
+}
+
+noArg {
+    annotation("jakarta.enterprise.context.RequestScoped")
+    annotation("jakarta.enterprise.context.ApplicationScoped")
+    annotation("org.example.JsonDeserializable")
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
 }
