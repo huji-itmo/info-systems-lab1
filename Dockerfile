@@ -11,7 +11,7 @@ COPY backend/settings.gradle.kts ./
 
 COPY backend/app app
 
-COPY --from=frontend-builder /app/out/ backend/app/src/main/webapp/
+COPY --from=frontend-builder /app/out/ app/src/main/webapp/
 
 RUN gradle war --no-daemon
 
