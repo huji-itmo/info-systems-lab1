@@ -12,8 +12,6 @@ import kotlin.math.ceil
 
 @ApplicationScoped
 open class ChapterService {
-    constructor()
-
     @PersistenceContext(unitName = "my-pu")
     private lateinit var em: EntityManager
 
