@@ -2,13 +2,131 @@ openapi: 3.0.3
 info:
   title: Space Marine Management API
   version: 1.0.0
-  description: API for managing Space Marines, their Coordinates, and Chapters with full CRUD and pagination support.
+  description: API for managing Space Marines, their Coordinates, and Chapters with full CRUD, pagination support, and special operations.
 
 servers:
   - url: http://localhost:8080/api
     description: Local development server
 
 paths:
+  # ========================
+  # SPECIAL OPERATIONS
+  # ========================
+
+  /special-operations/health/sum:
+    get:
+      summary: Calculate sum of health values for all Space Marines
+      operationId: calculateHealthSum
+      responses:
+        "200":
+          description: Sum of health values
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+                example: 450
+
+  /special-operations/health/average:
+    get:
+      summary: Calculate average health value for all Space Marines
+      operationId: calculateHealthAverage
+      responses:
+        "200":
+          description: Average health value
+          content:
+            application/json:
+              schema:
+                type: number
+                format: double
+                minimum: 0
+                example: 90.5
+
+  /special-operations/space-marines/filter-by-weapons:
+    get:
+      summary: Filter Space Marines by weapon types with pagination
+      operationId: filterSpaceMarinesByWeapons
+      parameters:
+        - name: weaponTypes
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [BOLTGUN, HEAVY_BOLTGUN, FLAMER, HEAVY_FLAMER, MULTI_MELTA]
+            minItems: 1
+            maxItems: 10
+          style: form
+          explode: true
+          description: List of weapon types to filter by (repeat parameter for multiple values)
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+          description: Zero-based page index
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of items per page (max 100)
+      responses:
+        "200":
+          description: Paginated list of filtered Space Marines
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginatedSpaceMarineResponse"
+        "400":
+          description: Invalid weapon type or pagination parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /special-operations/chapters/{chapterId}/assign-marine/{marineId}:
+    put:
+      summary: Assign a Space Marine to a Chapter
+      operationId: assignMarineToChapter
+      parameters:
+        - name: chapterId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+          description: ID of the Chapter to assign the marine to
+        - name: marineId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+          description: ID of the Space Marine to assign
+      responses:
+        "200":
+          description: Space Marine successfully assigned to Chapter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceMarine"
+        "404":
+          description: Chapter or Space Marine not found
+        "400":
+          description: Invalid IDs provided
+
   # ================
   # SPACE MARINES
   # ================
@@ -130,6 +248,38 @@ paths:
           description: Space Marine deleted
         "404":
           description: Space Marine not found
+
+  /space-marines/health/sum:
+    get:
+      summary: Calculate sum of health values for all Space Marines
+      operationId: calculateHealthSumLegacy
+      deprecated: true
+      description: This endpoint is deprecated. Use /special-operations/health/sum instead.
+      responses:
+        "200":
+          description: Sum of health values
+          content:
+            application/json:
+              schema:
+                type: integer
+                format: int64
+                minimum: 0
+
+  /space-marines/health/average:
+    get:
+      summary: Calculate average health value for all Space Marines
+      operationId: calculateHealthAverageLegacy
+      deprecated: true
+      description: This endpoint is deprecated. Use /special-operations/health/average instead.
+      responses:
+        "200":
+          description: Average health value
+          content:
+            application/json:
+              schema:
+                type: number
+                format: double
+                minimum: 0
 
   # ============
   # COORDINATES
@@ -517,9 +667,11 @@ components:
           type: string
           nullable: true
           enum: [AGGRESSOR, INCEPTOR, TACTICAL, CHAPLAIN, APOTHECARY]
+          description: Astartes category
         weaponType:
           type: string
           enum: [BOLTGUN, HEAVY_BOLTGUN, FLAMER, HEAVY_FLAMER, MULTI_MELTA]
+          description: Type of weapon used by the Space Marine
 
     SpaceMarineCreateRequest:
       type: object
@@ -596,11 +748,12 @@ components:
         x:
           type: integer
           format: int64
+          description: X coordinate
         y:
           type: number
           format: float
           maximum: 343
-          description: Must be ≤ 343
+          description: Y coordinate (must be ≤ 343)
 
     CoordinatesWithId:
       allOf:
@@ -613,6 +766,7 @@ components:
               type: integer
               format: int64
               minimum: 1
+              description: Unique auto-generated ID
 
     # === CHAPTER ===
 
@@ -625,13 +779,13 @@ components:
         name:
           type: string
           minLength: 1
-          description: Non-empty, non-null name
+          description: Non-empty, non-null name of the Chapter
         marinesCount:
           type: integer
           format: int64
           minimum: 1
           maximum: 1000
-          description: Must be between 1 and 1000
+          description: Number of marines in the chapter (must be between 1 and 1000)
 
     ChapterWithId:
       allOf:
@@ -644,3 +798,20 @@ components:
               type: integer
               format: int64
               minimum: 1
+              description: Unique auto-generated ID
+
+    # === ERROR RESPONSES ===
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the error occurred
+      example:
+        error: "Invalid weapon types: LASER_CANNON. Valid values: BOLTGUN,HEAVY_BOLTGUN,FLAMER,HEAVY_FLAMER,MULTI_MELTA"
+        timestamp: "2025-11-07T14:30:00.000Z"

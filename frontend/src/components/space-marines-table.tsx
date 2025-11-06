@@ -10,7 +10,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useSpaceMarines } from "@/hooks/use-space-marines";
 import {
   Pagination,
   PaginationContent,
@@ -19,9 +18,12 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination"; // 👈 your pagination
+} from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import { SpaceMarine, useSpaceMarines } from "@/hooks/use-space-marine-hooks";
+import { EditSpaceMarineDialog } from "./edit-space-marine-dialog";
 
 interface SpaceMarinesTableProps {
   pageSize?: number;
@@ -33,7 +35,7 @@ function generatePaginationRange(
   totalPages: number,
   siblingCount = 1
 ): (number | "...")[] {
-  const totalPageNumbers = siblingCount + 5; // 1 (first) + 2*sibling + 1 (last) + 2 (dots)
+  const totalPageNumbers = siblingCount + 5;
 
   if (totalPages <= totalPageNumbers) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
@@ -78,8 +80,9 @@ function generatePaginationRange(
   ];
 }
 
-export function SpaceMarinesTable({ pageSize = 20 }: SpaceMarinesTableProps) {
+export function SpaceMarinesTable({ pageSize = 10 }: SpaceMarinesTableProps) {
   const [page, setPage] = React.useState(0); // zero-based
+  const [editingMarine, setEditingMarine] = React.useState<SpaceMarine | null>(null);
   const { data, isLoading, isError, error } = useSpaceMarines(page, pageSize);
 
   const totalPages = data?.totalPages ?? 0;
@@ -87,6 +90,14 @@ export function SpaceMarinesTable({ pageSize = 20 }: SpaceMarinesTableProps) {
   const paginationRange = React.useMemo(() => {
     return generatePaginationRange(page + 1, totalPages);
   }, [page, totalPages]);
+
+  const handleEditClick = (marine: SpaceMarine) => {
+    setEditingMarine(marine);
+  };
+
+  const handleDialogClose = () => {
+    setEditingMarine(null);
+  };
 
   if (isError) {
     return (
@@ -110,6 +121,7 @@ export function SpaceMarinesTable({ pageSize = 20 }: SpaceMarinesTableProps) {
               <TableHead>Health</TableHead>
               <TableHead>Loyal</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead className="w-[80px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -123,6 +135,7 @@ export function SpaceMarinesTable({ pageSize = 20 }: SpaceMarinesTableProps) {
                   <TableCell><Skeleton className="w-8 h-4" /></TableCell>
                   <TableCell><Skeleton className="w-6 h-4" /></TableCell>
                   <TableCell><Skeleton className="w-16 h-4" /></TableCell>
+                  <TableCell><Skeleton className="w-8 h-8" /></TableCell>
                 </TableRow>
               ))
               : data?.content.length ? (
@@ -137,11 +150,22 @@ export function SpaceMarinesTable({ pageSize = 20 }: SpaceMarinesTableProps) {
                       {marine.loyal === null ? "—" : marine.loyal ? "✅" : "❌"}
                     </TableCell>
                     <TableCell>{marine.category || "—"}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleEditClick(marine)}
+                        className="w-8 h-8"
+                      >
+                        <Pencil className="w-4 h-4" />
+                        <span className="sr-only">Edit {marine.name}</span>
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-24 text-center">
+                  <TableCell colSpan={8} className="h-24 text-center">
                     No Space Marines found.
                   </TableCell>
                 </TableRow>
@@ -222,6 +246,15 @@ export function SpaceMarinesTable({ pageSize = 20 }: SpaceMarinesTableProps) {
           "Loading..."
         ) : null}
       </div>
+
+      {/* Edit Dialog */}
+      {editingMarine && (
+        <EditSpaceMarineDialog
+          marine={editingMarine}
+          open={!!editingMarine}
+          onOpenChange={handleDialogClose}
+        />
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { apiClient } from "@/lib/apiClient";
 import {
   DialogClose,
   DialogContent,
@@ -26,25 +26,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-
-import { createSpaceMarine } from "@/lib/api";
-import { paths } from "@/types/api.types";
 import { useForm } from "react-hook-form";
 import { spaceMarineSchema } from "@/lib/schemas";
-import { zodResolver } from "@hookform/resolvers/zod"
-import z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import type { AxiosError } from "axios";
+import { ChapterSelector } from "@/components/chapter-selector"; // Import the ChapterSelector
+import { CoordinateSelector } from "./coordinate-selector";
 
-type SpaceMarineCreateRequest =
-  paths["/space-marines"]["post"]["requestBody"]["content"]["application/json"];
+// Define the correct type for form submission
+type FormValues = z.infer<typeof spaceMarineSchema>;
 
-interface AddSpaceMarineDialogProps {
-  setOpen: (open: boolean) => void;
-}
-
-export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogProps) {
+export function AddSpaceMarineDialogContent({ setOpen }: { setOpen: (open: boolean) => void }) {
   const queryClient = useQueryClient();
 
-  const form = useForm<z.infer<typeof spaceMarineSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(spaceMarineSchema),
     defaultValues: {
       name: "",
@@ -57,24 +54,41 @@ export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogPro
     },
   });
 
+  // Create mutation for API call
   const mutation = useMutation({
-    mutationFn: createSpaceMarine,
+    mutationFn: async (data: FormValues) => {
+      const response = await apiClient.post("/space-marines", data);
+      return response.data;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["space-marines"] });
-      setOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["health"] });
+
+      toast.success("Space Marine created successfully", {
+        description: "A new battle-brother has joined the Chapter",
+      });
+
       form.reset();
+      setOpen(false);
     },
-    onError: (error) => {
-      console.error("Failed to create Space Marine:", error);
+    onError: (error: AxiosError<{ error: string }>) => {
+      const errorMessage = error.response?.data?.error ||
+        "Failed to create Space Marine. Please check your inputs and try again.";
+
+      toast.error("Creation failed", {
+        description: errorMessage,
+        duration: 5000,
+      });
+
+      console.error("Mutation failed:", error);
     },
   });
 
-  const onSubmit = (data: SpaceMarineCreateRequest) => {
+  const onSubmit = (data: FormValues) => {
     mutation.mutate(data);
   };
 
   return (
-
     <DialogContent className="max-w-lg">
       <DialogHeader>
         <DialogTitle>Add New Space Marine</DialogTitle>
@@ -104,13 +118,10 @@ export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogPro
                 <FormItem>
                   <FormLabel>Coordinates ID</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(e.target.valueAsNumber || 0)
-                      }
+                    <CoordinateSelector
+                      onSelect={(coordinates) => field.onChange(coordinates.id)}
+                      selectedCoordinateId={field.value}
+                      disabled={mutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -118,20 +129,18 @@ export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogPro
               )}
             />
 
+            {/* Replace Chapter ID input with ChapterSelector */}
             <FormField
               control={form.control}
               name="chapterId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Chapter ID</FormLabel>
+                  <FormLabel>Chapter</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) =>
-                        field.onChange(e.target.valueAsNumber || 0)
-                      }
+                    <ChapterSelector
+                      onSelect={(chapter) => field.onChange(chapter.id)}
+                      selectedChapterId={field.value}
+                      disabled={mutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -149,8 +158,9 @@ export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogPro
                 <FormControl>
                   <Input
                     type="number"
+                    min="1"
                     {...field}
-                    value={field.value ?? ""}
+                    value={field.value || ""}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || 0)
                     }
@@ -168,7 +178,7 @@ export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogPro
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md">
                 <FormControl>
                   <Checkbox
-                    checked={!!field.value}
+                    checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
@@ -186,7 +196,7 @@ export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogPro
               <FormItem>
                 <FormLabel>Category</FormLabel>
                 <Select
-                  value={field.value ?? "null"}
+                  value={field.value || "null"}
                   onValueChange={(value) =>
                     field.onChange(value === "null" ? null : value)
                   }
@@ -216,10 +226,7 @@ export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogPro
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Weapon Type</FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                >
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select weapon" />
@@ -238,8 +245,8 @@ export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogPro
             )}
           />
 
-          <div className="flex justify-end gap-2">
-            <DialogClose>
+          <div className="flex justify-end gap-2 pt-4">
+            <DialogClose asChild>
               <Button
                 type="button"
                 variant="outline"
@@ -252,8 +259,17 @@ export function AddSpaceMarineDialogContent({ setOpen }: AddSpaceMarineDialogPro
               </Button>
             </DialogClose>
 
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? "Creating..." : "Create Marine"}
+            <Button
+              type="submit"
+              disabled={mutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700"
+            >
+              {mutation.isPending ? (
+                <span className="flex items-center">
+                  <span className="mr-2">Creating...</span>
+                  <span className="inline-block border-2 border-white border-t-transparent rounded-full w-4 h-4 animate-spin" />
+                </span>
+              ) : "Create Marine"}
             </Button>
           </div>
         </form>

@@ -1,6 +1,7 @@
 package org.example.service
 
 import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.transaction.Transactional
@@ -12,12 +13,20 @@ import org.example.model.SpaceMarine
 import org.example.model.Weapon
 import org.example.model.requests.SpaceMarineCreateRequest
 import org.example.model.requests.SpaceMarineUpdateRequest
+import java.util.logging.Logger
 import kotlin.math.ceil
 
 @ApplicationScoped
 open class SpaceMarineService {
     @PersistenceContext(unitName = "my-pu")
     private lateinit var em: EntityManager
+
+    @Inject
+    private lateinit var chapterService: ChapterService
+
+    companion object {
+        private val logger = Logger.getLogger(SpaceMarineService::class.java.name)
+    }
 
     open fun findAll(
         page: Int,
@@ -137,5 +146,79 @@ open class SpaceMarineService {
     open fun delete(id: Int) {
         val entity = findById(id)
         em.remove(entity)
+    }
+
+    @Transactional
+    open fun assignMarineToChapter(
+        marineId: Int,
+        chapterId: Long,
+    ): SpaceMarine {
+        logger.info("Assigning marine $marineId to chapter $chapterId")
+        val marine = findById(marineId)
+
+        // Валидация существования ордена
+        try {
+            chapterService.findById(chapterId)
+        } catch (e: NotFoundException) {
+            throw NotFoundException("Chapter with ID $chapterId not found")
+        }
+
+        marine.chapterId = chapterId
+        return em.merge(marine)
+    }
+
+    open fun findByWeaponTypes(
+        weaponTypes: List<Weapon>,
+        page: Int,
+        size: Int,
+    ): Page<SpaceMarine> {
+        logger.info("Filtering marines by weapons: $weaponTypes (page=$page, size=$size)")
+
+        if (weaponTypes.isEmpty()) {
+            return Page(emptyList(), page, size, 0, 0)
+        }
+
+        // Запрос для получения общего количества
+        val countQuery =
+            em
+                .createQuery(
+                    "SELECT COUNT(s) FROM SpaceMarine s WHERE s.weaponType IN :weapons",
+                    Long::class.java,
+                ).setParameter("weapons", weaponTypes)
+
+        val total = countQuery.singleResult
+
+        // Запрос для получения данных с пагинацией
+        val contentQuery =
+            em.createQuery(
+                "SELECT s FROM SpaceMarine s WHERE s.weaponType IN :weapons ORDER BY s.name",
+                SpaceMarine::class.java,
+            )
+        contentQuery.setParameter("weapons", weaponTypes)
+        contentQuery.setFirstResult(page * size)
+        contentQuery.setMaxResults(size)
+
+        val content = contentQuery.resultList
+
+        return Page(
+            content = content,
+            page = page,
+            size = size,
+            totalElements = total,
+            totalPages = ceil(total.toDouble() / size).toInt(),
+        )
+    }
+
+    open fun sumHealth(): Long {
+        logger.info("Calculating sum of health values")
+        return em
+            .createQuery("SELECT COALESCE(SUM(s.health), 0) FROM SpaceMarine s", Long::class.java)
+            .singleResult
+    }
+
+    open fun averageHealth(): Double {
+        logger.info("Calculating average health value")
+        val avg = em.createQuery("SELECT AVG(s.health) FROM SpaceMarine s", Double::class.java).singleResult
+        return avg ?: 0.0
     }
 }

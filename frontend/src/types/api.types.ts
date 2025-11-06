@@ -4,6 +4,74 @@
  */
 
 export interface paths {
+    "/special-operations/health/sum": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Calculate sum of health values for all Space Marines */
+        get: operations["calculateHealthSum"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/special-operations/health/average": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Calculate average health value for all Space Marines */
+        get: operations["calculateHealthAverage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/special-operations/space-marines/filter-by-weapons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Filter Space Marines by weapon types with pagination */
+        get: operations["filterSpaceMarinesByWeapons"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/special-operations/chapters/{chapterId}/assign-marine/{marineId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Assign a Space Marine to a Chapter */
+        put: operations["assignMarineToChapter"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/space-marines": {
         parameters: {
             query?: never;
@@ -36,6 +104,48 @@ export interface paths {
         post?: never;
         /** Delete a Space Marine by ID */
         delete: operations["deleteSpaceMarine"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/space-marines/health/sum": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Calculate sum of health values for all Space Marines
+         * @deprecated
+         * @description This endpoint is deprecated. Use /special-operations/health/sum instead.
+         */
+        get: operations["calculateHealthSumLegacy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/space-marines/health/average": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Calculate average health value for all Space Marines
+         * @deprecated
+         * @description This endpoint is deprecated. Use /special-operations/health/average instead.
+         */
+        get: operations["calculateHealthAverageLegacy"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -181,9 +291,15 @@ export interface components {
              */
             health: number;
             loyal?: boolean | null;
-            /** @enum {string|null} */
+            /**
+             * @description Astartes category
+             * @enum {string|null}
+             */
             category?: "AGGRESSOR" | "INCEPTOR" | "TACTICAL" | "CHAPLAIN" | "APOTHECARY" | null;
-            /** @enum {string} */
+            /**
+             * @description Type of weapon used by the Space Marine
+             * @enum {string}
+             */
             weaponType: "BOLTGUN" | "HEAVY_BOLTGUN" | "FLAMER" | "HEAVY_FLAMER" | "MULTI_MELTA";
         };
         SpaceMarineCreateRequest: {
@@ -215,30 +331,54 @@ export interface components {
             weaponType?: "BOLTGUN" | "HEAVY_BOLTGUN" | "FLAMER" | "HEAVY_FLAMER" | "MULTI_MELTA";
         };
         Coordinates: {
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description X coordinate
+             */
             x: number;
             /**
              * Format: float
-             * @description Must be ≤ 343
+             * @description Y coordinate (must be ≤ 343)
              */
             y: number;
         };
         CoordinatesWithId: components["schemas"]["Coordinates"] & {
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Unique auto-generated ID
+             */
             id: number;
         };
         Chapter: {
-            /** @description Non-empty, non-null name */
+            /** @description Non-empty, non-null name of the Chapter */
             name: string;
             /**
              * Format: int64
-             * @description Must be between 1 and 1000
+             * @description Number of marines in the chapter (must be between 1 and 1000)
              */
             marinesCount: number;
         };
         ChapterWithId: components["schemas"]["Chapter"] & {
-            /** Format: int64 */
+            /**
+             * Format: int64
+             * @description Unique auto-generated ID
+             */
             id: number;
+        };
+        /**
+         * @example {
+         *       "error": "Invalid weapon types: LASER_CANNON. Valid values: BOLTGUN,HEAVY_BOLTGUN,FLAMER,HEAVY_FLAMER,MULTI_MELTA",
+         *       "timestamp": "2025-11-07T14:30:00.000Z"
+         *     }
+         */
+        ErrorResponse: {
+            /** @description Human-readable error message */
+            error?: string;
+            /**
+             * Format: date-time
+             * @description Timestamp when the error occurred
+             */
+            timestamp?: string;
         };
     };
     responses: never;
@@ -249,6 +389,121 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    calculateHealthSum: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sum of health values */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": number;
+                };
+            };
+        };
+    };
+    calculateHealthAverage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Average health value */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": number;
+                };
+            };
+        };
+    };
+    filterSpaceMarinesByWeapons: {
+        parameters: {
+            query: {
+                /** @description List of weapon types to filter by (repeat parameter for multiple values) */
+                weaponTypes: ("BOLTGUN" | "HEAVY_BOLTGUN" | "FLAMER" | "HEAVY_FLAMER" | "MULTI_MELTA")[];
+                /** @description Zero-based page index */
+                page?: number;
+                /** @description Number of items per page (max 100) */
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paginated list of filtered Space Marines */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedSpaceMarineResponse"];
+                };
+            };
+            /** @description Invalid weapon type or pagination parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    assignMarineToChapter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description ID of the Chapter to assign the marine to */
+                chapterId: number;
+                /** @description ID of the Space Marine to assign */
+                marineId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Space Marine successfully assigned to Chapter */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpaceMarine"];
+                };
+            };
+            /** @description Invalid IDs provided */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Chapter or Space Marine not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     getAllSpaceMarines: {
         parameters: {
             query?: {
@@ -398,6 +653,46 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    calculateHealthSumLegacy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sum of health values */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": number;
+                };
+            };
+        };
+    };
+    calculateHealthAverageLegacy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Average health value */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": number;
+                };
             };
         };
     };
