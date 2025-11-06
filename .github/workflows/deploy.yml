@@ -64,7 +64,9 @@ jobs:
 
       # SCP the WAR to your server
       - name: Deploy via SCP
-        run: scp -P "${{ secrets.PORT || '22' }}" backend/app/build/libs/*.war "${{ secrets.USERNAME }}@${{ secrets.HOST }}":~/info-systems-lab1/
+        env:
+          SSHPASS: ${{ secrets.PASSWORD }}
+        run: sshpass -e scp -P "${{ secrets.PORT || '22' }}" backend/app/build/libs/*.war "${{ secrets.USERNAME }}@${{ secrets.HOST }}":~/info-systems-lab1/
 
   deploy-run:
     needs: scp-war
@@ -81,6 +83,8 @@ jobs:
 
       # SCP the WAR to your server
       - name: Deploy via SCP
+        env:
+          SSHPASS: ${{ secrets.PASSWORD }}
         run: |
-          ssh -p "${{ secrets.PORT || '22' }}" "${{ secrets.USERNAME }}@${{ secrets.HOST }}" \
+          sshpass -e ssh -p "${{ secrets.PORT || '22' }}" "${{ secrets.USERNAME }}@${{ secrets.HOST }}" \
           "pkill java; java -jar ~/payara-micro-6.2025.10.jar --deploy ~/info-systems-lab1/app.war &"
