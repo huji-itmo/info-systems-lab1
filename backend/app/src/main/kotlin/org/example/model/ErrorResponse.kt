@@ -1,11 +1,20 @@
 package org.example.model
 
+import org.example.JsonDeserializable
+import java.time.LocalDateTime
+
+@JsonDeserializable
 data class ErrorResponse(
     val error: String,
     val message: String,
-    val timestamp: String =
-        java.time.Instant
-            .now()
-            .toString(),
-    val path: String? = null,
+    val path: String,
+    val timestamp: LocalDateTime = LocalDateTime.now(),
+    val fieldErrors: List<FieldError>? = null,
+)
+
+@JsonDeserializable
+data class FieldError(
+    val field: String,
+    val message: String,
+    val rejectedValue: Any? = null,
 )

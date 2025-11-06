@@ -1,12 +1,14 @@
 package org.example.model
 
-import org.example.JsonDeserializable
+import jakarta.json.bind.annotation.JsonbCreator
+import jakarta.json.bind.annotation.JsonbProperty
 
-@JsonDeserializable
-data class Page<T>(
-    val content: List<T>,
-    val page: Int,
-    val size: Int,
-    val totalElements: Long,
-    val totalPages: Int,
-)
+data class Page<T>
+    @JsonbCreator
+    constructor(
+        @JsonbProperty("content") val content: List<T>,
+        @JsonbProperty("page") val page: Int,
+        @JsonbProperty("size") val size: Int,
+        @JsonbProperty("totalElements") val totalElements: Long,
+        @JsonbProperty("totalPages") val totalPages: Int,
+    )
