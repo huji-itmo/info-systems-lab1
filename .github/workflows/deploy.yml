@@ -55,7 +55,7 @@ jobs:
           path: backend/app/build/libs/*.war
 
       - name: Setup sshpass
-        run: apt install sshpass
+        run: sudo apt install sshpass
 
       # SCP the WAR to your server
       - name: Deploy via SCP
