@@ -31,7 +31,7 @@ import java.util.logging.Logger
 @RequestScoped
 open class SpaceMarineResource {
     @Inject
-    private lateinit var service: SpaceMarineService
+    private lateinit var spaceMarineService: SpaceMarineService
 
     @Inject
     private lateinit var coordinatesService: CoordinatesService
@@ -51,7 +51,7 @@ open class SpaceMarineResource {
         logger.info("getAll called with page=$page, size=$size")
         require(page >= 0) { "page must be >= 0" }
         require(size in 1..100) { "size must be between 1 and 100" }
-        return service.findAll(page, size)
+        return spaceMarineService.findAll(page, size)
     }
 
     @POST
@@ -71,14 +71,14 @@ open class SpaceMarineResource {
             chapterId = spaceMarine.chapterId,
         )
 
-        return service.create(spaceMarine)
+        return spaceMarineService.create(spaceMarine)
     }
 
     @GET
     @Path("/{id}")
     open fun getById(
         @PathParam("id") id: Int,
-    ): SpaceMarine = service.findById(id)
+    ): SpaceMarine = spaceMarineService.findById(id)
 
     @PUT
     @Path("/{id}")
@@ -91,7 +91,7 @@ open class SpaceMarineResource {
             coordinatesId = update.coordinatesId,
             chapterId = update.chapterId,
         )
-        return service.update(id, update)
+        return spaceMarineService.update(id, update)
     }
 
     @DELETE
@@ -99,7 +99,7 @@ open class SpaceMarineResource {
     open fun delete(
         @PathParam("id") id: Int,
     ): Response {
-        service.delete(id)
+        spaceMarineService.delete(id)
         return Response.status(Response.Status.NO_CONTENT).build()
     }
 
@@ -121,5 +121,21 @@ open class SpaceMarineResource {
                 throw NotFoundException("Chapter with ID $it not found")
             }
         }
+    }
+
+    // 1. Сумма значений health
+    @GET
+    @Path("/health/sum")
+    fun calculateHealthSum(): Long {
+        logger.info("Handling health sum request")
+        return spaceMarineService.sumHealth()
+    }
+
+    // 2. Среднее значение health
+    @GET
+    @Path("/health/average")
+    fun calculateHealthAverage(): Double {
+        logger.info("Handling health average request")
+        return spaceMarineService.averageHealth()
     }
 }
