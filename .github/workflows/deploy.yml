@@ -6,6 +6,7 @@ on:
 
 jobs:
   scp-war:
+    name: Build and upload war to server
     runs-on: ubuntu-latest
 
     steps:
@@ -53,21 +54,18 @@ jobs:
           name: app-war
           path: backend/app/build/libs/*.war
 
+      - name: Setup sshpass
+        run: apt install sshpass
+
       # SCP the WAR to your server
       - name: Deploy via SCP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          port: ${{ secrets.PORT }}
-          source: "backend/app/build/libs/*.war"
-          target: "~/"
-          strip_components: 4
+        env:
+          SSHPASS: ${{ secrets.PASSWORD }}
+        run: sshpass -e scp -p ${{ secrets.PORT || '22' }} backend/app/build/libs/*.war ${{ secrets.USERNAME }}@${{ secrets.HOST }} ~/
 
   deploy-run:
     needs: scp-war
-    name: Build
+    name: Run deployed war
     runs-on: ubuntu-latest
     steps:
       - name: Execute remote SSH commands using password
@@ -76,5 +74,5 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{secrets.USERNAME }}
           password: ${{ secrets.PASSWORD }}
-          port: ${{ secrets.PORT }}
+          port: ${{ secrets.PORT || '22' }}
           script: whoami
