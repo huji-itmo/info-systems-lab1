@@ -44,7 +44,7 @@ jobs:
       - name: Build WAR with Gradle
         run: |
           cd backend
-          ./gradlew clean war
+          ./gradlew war --no-daemon
 
       # Upload WAR as artifact (optional)
       - name: Upload WAR artifact
@@ -59,7 +59,7 @@ jobs:
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
-          kpassword: ${{ secrets.PASSWORD }}
+          password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           source: "backend/app/build/libs/*.war"
           target: "~/"
