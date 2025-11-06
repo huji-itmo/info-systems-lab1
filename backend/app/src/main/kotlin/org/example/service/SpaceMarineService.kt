@@ -16,8 +16,6 @@ import kotlin.math.ceil
 
 @ApplicationScoped
 open class SpaceMarineService {
-    constructor()
-
     @PersistenceContext(unitName = "my-pu")
     private lateinit var em: EntityManager
 
@@ -50,19 +48,27 @@ open class SpaceMarineService {
         @Valid spaceMarine: SpaceMarineCreateRequest,
     ): SpaceMarine {
         // Convert string values to enums safely
-        val category = spaceMarine.category?.let {
-            try {
-                AstartesCategory.valueOf(it.uppercase())
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("Invalid category value: $it. Valid values are: ${AstartesCategory.values().joinToString()}")
+        val category =
+            spaceMarine.category?.let {
+                try {
+                    AstartesCategory.valueOf(it.uppercase())
+                } catch (e: IllegalArgumentException) {
+                    throw IllegalArgumentException(
+                        "Invalid category value: $it. " +
+                            "Valid values are: ${AstartesCategory.values().joinToString()}",
+                    )
+                }
             }
-        }
 
-        val weaponType = try {
-            Weapon.valueOf(spaceMarine.weaponType.uppercase())
-        } catch (e: IllegalArgumentException) {
-            throw IllegalArgumentException("Invalid weapon type: ${spaceMarine.weaponType}. Valid values are: ${Weapon.values().joinToString()}")
-        }
+        val weaponType =
+            try {
+                Weapon.valueOf(spaceMarine.weaponType.uppercase())
+            } catch (e: IllegalArgumentException) {
+                throw IllegalArgumentException(
+                    "Invalid weapon type: ${spaceMarine.weaponType}. " +
+                        "Valid values are: ${Weapon.values().joinToString()}",
+                )
+            }
 
         val entity =
             SpaceMarine(
@@ -87,21 +93,29 @@ open class SpaceMarineService {
         val existing = findById(id)
 
         // Convert string values to enums with null safety
-        val category = update.category?.let { categoryStr ->
-            try {
-                AstartesCategory.valueOf(categoryStr.uppercase())
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("Invalid category value: $categoryStr. Valid values are: ${AstartesCategory.values().joinToString()}")
-            }
-        } ?: existing.category
+        val category =
+            update.category?.let { categoryStr ->
+                try {
+                    AstartesCategory.valueOf(categoryStr.uppercase())
+                } catch (e: IllegalArgumentException) {
+                    throw IllegalArgumentException(
+                        "Invalid category value: $categoryStr. " +
+                            "Valid values are: ${AstartesCategory.values().joinToString()}",
+                    )
+                }
+            } ?: existing.category
 
-        val weaponType = update.weaponType?.let { weaponStr ->
-            try {
-                Weapon.valueOf(weaponStr.uppercase())
-            } catch (e: IllegalArgumentException) {
-                throw IllegalArgumentException("Invalid weapon type: $weaponStr. Valid values are: ${Weapon.values().joinToString()}")
-            }
-        } ?: existing.weaponType
+        val weaponType =
+            update.weaponType?.let { weaponStr ->
+                try {
+                    Weapon.valueOf(weaponStr.uppercase())
+                } catch (e: IllegalArgumentException) {
+                    throw IllegalArgumentException(
+                        "Invalid weapon type: $weaponStr. " +
+                            "Valid values are: ${Weapon.values().joinToString()}",
+                    )
+                }
+            } ?: existing.weaponType
 
         val updated =
             SpaceMarine(

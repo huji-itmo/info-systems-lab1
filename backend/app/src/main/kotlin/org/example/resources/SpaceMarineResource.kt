@@ -15,10 +15,13 @@ import jakarta.ws.rs.Produces
 import jakarta.ws.rs.QueryParam
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
+import org.example.exceptions.NotFoundException
 import org.example.model.Page
 import org.example.model.SpaceMarine
 import org.example.model.requests.SpaceMarineCreateRequest
 import org.example.model.requests.SpaceMarineUpdateRequest
+import org.example.service.ChapterService
+import org.example.service.CoordinatesService
 import org.example.service.SpaceMarineService
 import java.util.logging.Logger
 
@@ -29,6 +32,12 @@ import java.util.logging.Logger
 open class SpaceMarineResource {
     @Inject
     private lateinit var service: SpaceMarineService
+
+    @Inject
+    private lateinit var coordinatesService: CoordinatesService
+
+    @Inject
+    private lateinit var chapterService: ChapterService
 
     companion object {
         private val logger = Logger.getLogger(SpaceMarineResource::class.java.name)
@@ -51,8 +60,17 @@ open class SpaceMarineResource {
     ): SpaceMarine {
         logger.info("Received create request: $spaceMarine")
         logger.info(
-            "Name: ${spaceMarine.name}, CoordinatesId: ${spaceMarine.coordinatesId}, Weapon: ${spaceMarine.weaponType}",
+            "Name: ${spaceMarine.name}, " +
+                "CoordinatesId: ${spaceMarine.coordinatesId}, " +
+                "Weapon: ${spaceMarine.weaponType}",
         )
+
+        // Validate existence of referenced entities
+        validateCoordinatesAndChapter(
+            coordinatesId = spaceMarine.coordinatesId,
+            chapterId = spaceMarine.chapterId,
+        )
+
         return service.create(spaceMarine)
     }
 
@@ -67,7 +85,14 @@ open class SpaceMarineResource {
     open fun update(
         @PathParam("id") id: Int,
         @Valid update: SpaceMarineUpdateRequest,
-    ): SpaceMarine = service.update(id, update)
+    ): SpaceMarine {
+        // Validate existence of referenced entities only if provided in update
+        validateCoordinatesAndChapter(
+            coordinatesId = update.coordinatesId,
+            chapterId = update.chapterId,
+        )
+        return service.update(id, update)
+    }
 
     @DELETE
     @Path("/{id}")
@@ -76,5 +101,25 @@ open class SpaceMarineResource {
     ): Response {
         service.delete(id)
         return Response.status(Response.Status.NO_CONTENT).build()
+    }
+
+    private fun validateCoordinatesAndChapter(
+        coordinatesId: Long?,
+        chapterId: Long?,
+    ) {
+        coordinatesId?.let {
+            try {
+                coordinatesService.findById(it)
+            } catch (e: NotFoundException) {
+                throw NotFoundException("Coordinates with ID $it not found")
+            }
+        }
+        chapterId?.let {
+            try {
+                chapterService.findById(it)
+            } catch (e: NotFoundException) {
+                throw NotFoundException("Chapter with ID $it not found")
+            }
+        }
     }
 }

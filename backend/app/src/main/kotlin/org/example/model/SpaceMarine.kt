@@ -1,5 +1,6 @@
 package org.example.model
 
+import com.fasterxml.jackson.annotation.JsonFormat
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -28,6 +29,7 @@ data class SpaceMarine(
     var coordinatesId: Long,
     @field:NotNull
     @Column(nullable = false, updatable = false)
+    @field:JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     var creationDate: LocalDateTime = LocalDateTime.now(),
     @field:NotNull
     @Column(name = "chapter_id", nullable = false)

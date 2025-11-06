@@ -12,8 +12,6 @@ import kotlin.math.ceil
 
 @ApplicationScoped
 open class CoordinatesService {
-    constructor()
-
     @PersistenceContext(unitName = "my-pu")
     private lateinit var em: EntityManager
 
@@ -45,10 +43,9 @@ open class CoordinatesService {
     open fun create(
         @Valid coordinates: Coordinates,
     ): Coordinates {
-        // Since Coordinates.id is auto-generated, we create a new instance without ID
         val entity =
             Coordinates(
-                id = 0, // will be ignored due to @GeneratedValue
+                id = 0,
                 x = coordinates.x,
                 y = coordinates.y,
             )
@@ -61,7 +58,7 @@ open class CoordinatesService {
         id: Long,
         @Valid coordinates: Coordinates,
     ): Coordinates {
-        findById(id) // ensure exists
+        findById(id)
         val updated =
             Coordinates(
                 id = id,
