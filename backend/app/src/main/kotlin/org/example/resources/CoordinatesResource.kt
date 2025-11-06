@@ -15,26 +15,40 @@ import jakarta.ws.rs.Produces
 import jakarta.ws.rs.QueryParam
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
+import org.example.exceptions.NotFoundException
 import org.example.model.Coordinates
+import org.example.model.Page
 import org.example.service.CoordinatesService
+import java.util.logging.Logger
 
 @Path("/coordinates")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequestScoped
-open class CoordinatesResource(
-    private val service: CoordinatesService,
-) {
+open class CoordinatesResource {
+    @Inject
+    private lateinit var service: CoordinatesService
+
+    companion object {
+        private val logger = Logger.getLogger(CoordinatesResource::class.java.name)
+    }
+
     @GET
     open fun getAll(
         @QueryParam("page") @DefaultValue("0") page: Int,
         @QueryParam("size") @DefaultValue("20") size: Int,
-    ) = service.findAll(page, size)
+    ): Page<Coordinates> {
+        logger.info("getAll called with page=$page, size=$size")
+        require(page >= 0) { "page must be >= 0" }
+        require(size in 1..100) { "size must be between 1 and 100" }
+        return service.findAll(page, size)
+    }
 
     @POST
     open fun create(
         @Valid coords: Coordinates,
     ): Response {
+        logger.info("Received create request: $coords")
         val saved = service.create(coords)
         return Response.status(Response.Status.CREATED).entity(saved).build()
     }
@@ -43,21 +57,38 @@ open class CoordinatesResource(
     @Path("/{id}")
     open fun getById(
         @PathParam("id") id: Long,
-    ) = service.findById(id)
+    ): Coordinates {
+        logger.info("getById called with id=$id")
+        return service.findById(id)
+    }
 
     @PUT
     @Path("/{id}")
     open fun update(
         @PathParam("id") id: Long,
         @Valid coords: Coordinates,
-    ) = service.update(id, coords)
+    ): Coordinates {
+        logger.info("update called for id=$id with data=$coords")
+        return try {
+            service.update(id, coords)
+        } catch (e: NotFoundException) {
+            logger.warning("Coordinates not found during update: $id")
+            throw e
+        }
+    }
 
     @DELETE
     @Path("/{id}")
     open fun delete(
         @PathParam("id") id: Long,
     ): Response {
-        service.delete(id)
+        logger.info("delete called for id=$id")
+        try {
+            service.delete(id)
+        } catch (e: NotFoundException) {
+            logger.warning("Coordinates not found during delete: $id")
+            throw e
+        }
         return Response.status(Response.Status.NO_CONTENT).build()
     }
 }

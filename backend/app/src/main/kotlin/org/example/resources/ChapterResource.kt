@@ -15,26 +15,40 @@ import jakarta.ws.rs.Produces
 import jakarta.ws.rs.QueryParam
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.core.Response
+import org.example.exceptions.NotFoundException
 import org.example.model.Chapter
+import org.example.model.Page
 import org.example.service.ChapterService
+import java.util.logging.Logger
 
 @Path("/chapters")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequestScoped
-open class ChapterResource(
-    private val service: ChapterService,
-) {
+open class ChapterResource {
+    @Inject
+    private lateinit var service: ChapterService
+
+    companion object {
+        private val logger = Logger.getLogger(ChapterResource::class.java.name)
+    }
+
     @GET
     open fun getAll(
         @QueryParam("page") @DefaultValue("0") page: Int,
         @QueryParam("size") @DefaultValue("20") size: Int,
-    ) = service.findAll(page, size)
+    ): Page<Chapter> {
+        logger.info("getAll called with page=$page, size=$size")
+        require(page >= 0) { "page must be >= 0" }
+        require(size in 1..100) { "size must be between 1 and 100" }
+        return service.findAll(page, size)
+    }
 
     @POST
     open fun create(
         @Valid chapter: Chapter,
     ): Response {
+        logger.info("Received create request: $chapter")
         val saved = service.create(chapter)
         return Response.status(Response.Status.CREATED).entity(saved).build()
     }
@@ -43,21 +57,38 @@ open class ChapterResource(
     @Path("/{id}")
     open fun getById(
         @PathParam("id") id: Long,
-    ) = service.findById(id)
+    ): Chapter {
+        logger.info("getById called with id=$id")
+        return service.findById(id)
+    }
 
     @PUT
     @Path("/{id}")
     open fun update(
         @PathParam("id") id: Long,
         @Valid chapter: Chapter,
-    ) = service.update(id, chapter)
+    ): Chapter {
+        logger.info("update called for id=$id with data=$chapter")
+        return try {
+            service.update(id, chapter)
+        } catch (e: NotFoundException) {
+            logger.warning("Chapter not found during update: $id")
+            throw e
+        }
+    }
 
     @DELETE
     @Path("/{id}")
     open fun delete(
         @PathParam("id") id: Long,
     ): Response {
-        service.delete(id)
+        logger.info("delete called for id=$id")
+        try {
+            service.delete(id)
+        } catch (e: NotFoundException) {
+            logger.warning("Chapter not found during delete: $id")
+            throw e
+        }
         return Response.status(Response.Status.NO_CONTENT).build()
     }
 }
