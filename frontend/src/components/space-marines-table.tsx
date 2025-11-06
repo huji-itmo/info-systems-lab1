@@ -78,7 +78,7 @@ function generatePaginationRange(
   ];
 }
 
-export function SpaceMarinesTable({ pageSize = 20 }: SpaceMarinesTableProps) {
+export function SpaceMarinesTable({ pageSize = 10 }: SpaceMarinesTableProps) {
   const [page, setPage] = React.useState(0); // zero-based
   const { data, isLoading, isError, error } = useSpaceMarines(page, pageSize);
 
