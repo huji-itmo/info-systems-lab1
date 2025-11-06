@@ -59,25 +59,28 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p ${{ secrets.PORT || 22 }} ${{ secrets.HOST }} > ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.PORT || '22' }} ${{ secrets.HOST }} > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
       # SCP the WAR to your server
       - name: Deploy via SCP
-        env:
-          SSHPASS: ${{ secrets.PASSWORD }}
-        run: sshpass -e scp -P "${{ secrets.PORT || '22' }}" backend/app/build/libs/*.war "${{ secrets.USERNAME }}@${{ secrets.HOST }}":~/info-systems-lab1/
+        run: scp -P "${{ secrets.PORT || '22' }}" backend/app/build/libs/*.war "${{ secrets.USERNAME }}@${{ secrets.HOST }}":~/info-systems-lab1/
 
   deploy-run:
     needs: scp-war
     name: Run deployed war
     runs-on: ubuntu-latest
     steps:
-      - name: Execute remote SSH commands using password
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{secrets.USERNAME }}
-          password: ${{ secrets.PASSWORD }}
-          port: ${{ secrets.PORT || '22' }}
-          script: whoami
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p ${{ secrets.PORT || '22' }} ${{ secrets.HOST }} > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      # SCP the WAR to your server
+      - name: Deploy via SCP
+        run: |
+          ssh -p "${{ secrets.PORT || '22' }}" "${{ secrets.USERNAME }}@${{ secrets.HOST }}" \
+          "pkill java; java -jar ~/payara-micro-6.2025.10.jar --deploy ~/info-systems-lab1/app.war &"
