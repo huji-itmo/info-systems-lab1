@@ -88,8 +88,8 @@ jobs:
         run: |
           sshpass -e ssh -p "${{ secrets.PORT || 22 }}" "${{ secrets.USERNAME }}@${{ secrets.HOST }}" \
           "pkill java 2>/dev/null || true; \
-          export POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-          export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} \
+          export POSTGRES_USER=${{ secrets.POSTGRES_USER }}; \
+          export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}; \
           nohup java -Xmx1024m -Xms512m -jar ~/payara-micro-6.2025.10.jar \
           --deploy ~/info-systems-lab1/app.war \
           --port ${{ secrets.DEPLOY_PORT || 8080 }} \
