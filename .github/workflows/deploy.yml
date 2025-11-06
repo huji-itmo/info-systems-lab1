@@ -61,7 +61,7 @@ jobs:
       - name: Deploy via SCP
         env:
           SSHPASS: ${{ secrets.PASSWORD }}
-        run: sshpass -e scp -P "${{ secrets.PORT || '22' }}" backend/app/build/libs/*.war "${{ secrets.USERNAME }}@${{ secrets.HOST }}" ~/
+        run: sshpass -e scp -P "${{ secrets.PORT || '22' }}" backend/app/build/libs/*.war "${{ secrets.USERNAME }}@${{ secrets.HOST }}":~/info-systems-lab1/
 
   deploy-run:
     needs: scp-war
