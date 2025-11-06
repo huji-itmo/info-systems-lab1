@@ -87,4 +87,4 @@ jobs:
           SSHPASS: ${{ secrets.PASSWORD }}
         run: |
           sshpass -e ssh -p "${{ secrets.PORT || '22' }}" "${{ secrets.USERNAME }}@${{ secrets.HOST }}" \
-          "pkill java; java -jar ~/payara-micro-6.2025.10.jar --deploy ~/info-systems-lab1/app.war &"
+          "pkill java; java -Xmx1024m -Xms512m -jar ~/payara-micro-6.2025.10.jar --deploy ~/info-systems-lab1/app.war &"
