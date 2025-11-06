@@ -19,31 +19,30 @@ import java.time.LocalDateTime
 data class SpaceMarine(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @field:Positive
-    val id: Int = 0,
+    var id: Int = 0,
     @field:NotBlank
     @Column(nullable = false)
-    val name: String,
+    var name: String,
     @field:NotNull
     @Column(name = "coordinates_id", nullable = false)
-    val coordinatesId: Long,
+    var coordinatesId: Long,
     @field:NotNull
     @Column(nullable = false, updatable = false)
-    val creationDate: LocalDateTime = LocalDateTime.now(),
+    var creationDate: LocalDateTime = LocalDateTime.now(),
     @field:NotNull
     @Column(name = "chapter_id", nullable = false)
-    val chapterId: Long,
+    var chapterId: Long,
     @field:NotNull
     @field:Positive
     @Column(nullable = false)
-    val health: Long,
+    var health: Long,
     @Column
-    val loyal: Boolean? = null,
+    var loyal: Boolean? = null,
     @Enumerated(EnumType.STRING)
     @Column
-    val category: AstartesCategory? = null,
+    var category: AstartesCategory? = null,
     @field:NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val weaponType: Weapon,
+    var weaponType: Weapon,
 )

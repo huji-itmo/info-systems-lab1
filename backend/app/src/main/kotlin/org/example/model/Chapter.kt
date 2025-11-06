@@ -14,10 +14,10 @@ import jakarta.validation.constraints.Positive
 data class Chapter(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    var id: Long = 0,
     @field:NotBlank
-    val name: String,
+    var name: String,
     @field:Positive
     @field:Max(1000)
-    val marinesCount: Long,
+    var marinesCount: Long,
 )

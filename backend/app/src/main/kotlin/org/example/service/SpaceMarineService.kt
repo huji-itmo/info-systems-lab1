@@ -6,8 +6,10 @@ import jakarta.persistence.PersistenceContext
 import jakarta.transaction.Transactional
 import jakarta.validation.Valid
 import org.example.exceptions.NotFoundException
+import org.example.model.AstartesCategory
 import org.example.model.Page
 import org.example.model.SpaceMarine
+import org.example.model.Weapon
 import org.example.model.requests.SpaceMarineCreateRequest
 import org.example.model.requests.SpaceMarineUpdateRequest
 import kotlin.math.ceil
@@ -47,6 +49,21 @@ open class SpaceMarineService {
     open fun create(
         @Valid spaceMarine: SpaceMarineCreateRequest,
     ): SpaceMarine {
+        // Convert string values to enums safely
+        val category = spaceMarine.category?.let {
+            try {
+                AstartesCategory.valueOf(it.uppercase())
+            } catch (e: IllegalArgumentException) {
+                throw IllegalArgumentException("Invalid category value: $it. Valid values are: ${AstartesCategory.values().joinToString()}")
+            }
+        }
+
+        val weaponType = try {
+            Weapon.valueOf(spaceMarine.weaponType.uppercase())
+        } catch (e: IllegalArgumentException) {
+            throw IllegalArgumentException("Invalid weapon type: ${spaceMarine.weaponType}. Valid values are: ${Weapon.values().joinToString()}")
+        }
+
         val entity =
             SpaceMarine(
                 id = 0,
@@ -55,8 +72,8 @@ open class SpaceMarineService {
                 chapterId = spaceMarine.chapterId,
                 health = spaceMarine.health,
                 loyal = spaceMarine.loyal,
-                category = spaceMarine.category,
-                weaponType = spaceMarine.weaponType,
+                category = category,
+                weaponType = weaponType,
             )
         em.persist(entity)
         return entity
@@ -68,6 +85,24 @@ open class SpaceMarineService {
         @Valid update: SpaceMarineUpdateRequest,
     ): SpaceMarine {
         val existing = findById(id)
+
+        // Convert string values to enums with null safety
+        val category = update.category?.let { categoryStr ->
+            try {
+                AstartesCategory.valueOf(categoryStr.uppercase())
+            } catch (e: IllegalArgumentException) {
+                throw IllegalArgumentException("Invalid category value: $categoryStr. Valid values are: ${AstartesCategory.values().joinToString()}")
+            }
+        } ?: existing.category
+
+        val weaponType = update.weaponType?.let { weaponStr ->
+            try {
+                Weapon.valueOf(weaponStr.uppercase())
+            } catch (e: IllegalArgumentException) {
+                throw IllegalArgumentException("Invalid weapon type: $weaponStr. Valid values are: ${Weapon.values().joinToString()}")
+            }
+        } ?: existing.weaponType
+
         val updated =
             SpaceMarine(
                 id = id,
@@ -76,8 +111,8 @@ open class SpaceMarineService {
                 chapterId = update.chapterId ?: existing.chapterId,
                 health = update.health ?: existing.health,
                 loyal = update.loyal ?: existing.loyal,
-                category = update.category ?: existing.category,
-                weaponType = update.weaponType ?: existing.weaponType,
+                category = category,
+                weaponType = weaponType,
                 creationDate = existing.creationDate, // immutable
             )
         em.merge(updated)

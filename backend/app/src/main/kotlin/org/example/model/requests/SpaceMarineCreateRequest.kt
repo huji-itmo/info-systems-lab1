@@ -7,21 +7,26 @@ import org.example.JsonDeserializable
 import org.example.model.AstartesCategory
 import org.example.model.Weapon
 
-@JsonDeserializable
-data class SpaceMarineCreateRequest(
+// org.example.model.Page
+import jakarta.json.bind.annotation.JsonbCreator
+import jakarta.json.bind.annotation.JsonbProperty
+
+
+data class SpaceMarineCreateRequest
+@JsonbCreator constructor(
     @field:NotBlank
-    val name: String,
+    @JsonbProperty("name") val name: String,
     @field:NotNull
     @field:Positive
-    val coordinatesId: Long,
+    @JsonbProperty("coordinatesId") val coordinatesId: Long,
     @field:NotNull
     @field:Positive
-    val chapterId: Long,
+    @JsonbProperty("chapterId") val chapterId: Long,
     @field:NotNull
     @field:Positive
-    val health: Long,
-    val loyal: Boolean? = null,
-    val category: AstartesCategory? = null,
+    @JsonbProperty("health") val health: Long,
+    @JsonbProperty("loyal") val loyal: Boolean?,
+    @JsonbProperty("category") val category: String?,
     @field:NotNull
-    val weaponType: Weapon,
+    @JsonbProperty("weaponType") val weaponType: String,
 )

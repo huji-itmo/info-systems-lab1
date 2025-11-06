@@ -17,19 +17,19 @@ class ValidationExceptionMapper : ExceptionMapper<ConstraintViolationException> 
 
     override fun toResponse(exception: ConstraintViolationException): Response {
         val fieldErrors = exception.constraintViolations.map { toFieldError(it) }
-        val message = fieldErrors.joinToString("; ") { "${it.field}: ${it.message}" }
+        val consolidatedMessage = fieldErrors.joinToString("; ") { "${it.field}: ${it.message}" }
 
-        val error =
+        val errorResponse =
             ErrorResponse(
                 error = "VALIDATION_ERROR",
-                message = message,
+                message = consolidatedMessage,
                 path = uriInfo.path,
                 fieldErrors = fieldErrors,
             )
 
         return Response
             .status(Response.Status.BAD_REQUEST)
-            .entity(error)
+            .entity(errorResponse)
             .build()
     }
 

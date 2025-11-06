@@ -11,6 +11,6 @@ data class SpaceMarineUpdateRequest(
     val chapterId: Long? = null,
     val health: Long? = null,
     val loyal: Boolean? = null,
-    val category: AstartesCategory? = null,
-    val weaponType: Weapon? = null,
+    val category: String? = null,
+    val weaponType: String? = null,
 )

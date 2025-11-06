@@ -12,8 +12,8 @@ import jakarta.validation.constraints.Max
 data class Coordinates(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
-    val x: Long,
+    var id: Long = 0,
+    var x: Long,
     @field:Max(343)
-    val y: Float,
+    var y: Float,
 )

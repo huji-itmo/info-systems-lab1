@@ -20,6 +20,7 @@ import org.example.model.SpaceMarine
 import org.example.model.requests.SpaceMarineCreateRequest
 import org.example.model.requests.SpaceMarineUpdateRequest
 import org.example.service.SpaceMarineService
+import java.util.logging.Logger
 
 @Path("/space-marines")
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,22 +30,30 @@ open class SpaceMarineResource {
     @Inject
     private lateinit var service: SpaceMarineService
 
+    companion object {
+        private val logger = Logger.getLogger(SpaceMarineResource::class.java.name)
+    }
+
     @GET
     open fun getAll(
         @QueryParam("page") @DefaultValue("0") page: Int,
         @QueryParam("size") @DefaultValue("20") size: Int,
     ): Page<SpaceMarine> {
+        logger.info("getAll called with page=$page, size=$size")
         require(page >= 0) { "page must be >= 0" }
         require(size in 1..100) { "size must be between 1 and 100" }
         return service.findAll(page, size)
     }
 
     @POST
-    open fun create(
-        @Valid entity: SpaceMarineCreateRequest,
-    ): Response {
-        val saved = service.create(entity)
-        return Response.status(Response.Status.CREATED).entity(saved).build()
+    fun create(
+        @Valid spaceMarine: SpaceMarineCreateRequest,
+    ): SpaceMarine {
+        logger.info("Received create request: $spaceMarine")
+        logger.info(
+            "Name: ${spaceMarine.name}, CoordinatesId: ${spaceMarine.coordinatesId}, Weapon: ${spaceMarine.weaponType}",
+        )
+        return service.create(spaceMarine)
     }
 
     @GET
