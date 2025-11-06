@@ -93,7 +93,7 @@ export const useAssignMarineToChapter = () => {
 
   return useMutation<
     SpaceMarine,
-    AxiosError,
+    AxiosError<{ error: string }>,
     { chapterId: number; marineId: number }
   >({
     mutationFn: ({ chapterId, marineId }) =>

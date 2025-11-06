@@ -1,4 +1,3 @@
-// src/hooks/api/useChapterHooks.ts
 import {
   useMutation,
   useQuery,
