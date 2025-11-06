@@ -20,7 +20,9 @@ jobs:
           distribution: "openjdk"
 
       - name: Set up Bun
-        uses: oven-sh/setup-bun@v2 // [!code ++]
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
 
       - name: Build frontend
         run: |
