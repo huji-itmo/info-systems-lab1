@@ -31,7 +31,9 @@ import { spaceMarineSchema } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import type { AxiosError } from "axios"; // Import AxiosError type
+import type { AxiosError } from "axios";
+import { ChapterSelector } from "@/components/chapter-selector"; // Import the ChapterSelector
+import { CoordinateSelector } from "./coordinate-selector";
 
 // Define the correct type for form submission
 type FormValues = z.infer<typeof spaceMarineSchema>;
@@ -55,26 +57,21 @@ export function AddSpaceMarineDialogContent({ setOpen }: { setOpen: (open: boole
   // Create mutation for API call
   const mutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      // No transformation needed - API accepts null for category
       const response = await apiClient.post("/space-marines", data);
       return response.data;
     },
     onSuccess: () => {
-      // Invalidate and refetch queries
       queryClient.invalidateQueries({ queryKey: ["space-marines"] });
       queryClient.invalidateQueries({ queryKey: ["health"] });
 
-      // Show success toast
       toast.success("Space Marine created successfully", {
         description: "A new battle-brother has joined the Chapter",
       });
 
-      // Reset form and close dialog
       form.reset();
       setOpen(false);
     },
     onError: (error: AxiosError<{ error: string }>) => {
-      // Handle error with proper typing
       const errorMessage = error.response?.data?.error ||
         "Failed to create Space Marine. Please check your inputs and try again.";
 
@@ -121,14 +118,10 @@ export function AddSpaceMarineDialogContent({ setOpen }: { setOpen: (open: boole
                 <FormItem>
                   <FormLabel>Coordinates ID</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      min="1"
-                      {...field}
-                      value={field.value || ""}
-                      onChange={(e) =>
-                        field.onChange(e.target.valueAsNumber || 0)
-                      }
+                    <CoordinateSelector
+                      onSelect={(coordinates) => field.onChange(coordinates.id)}
+                      selectedCoordinateId={field.value}
+                      disabled={mutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />
@@ -136,21 +129,18 @@ export function AddSpaceMarineDialogContent({ setOpen }: { setOpen: (open: boole
               )}
             />
 
+            {/* Replace Chapter ID input with ChapterSelector */}
             <FormField
               control={form.control}
               name="chapterId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Chapter ID</FormLabel>
+                  <FormLabel>Chapter</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      min="1"
-                      {...field}
-                      value={field.value || ""}
-                      onChange={(e) =>
-                        field.onChange(e.target.valueAsNumber || 0)
-                      }
+                    <ChapterSelector
+                      onSelect={(chapter) => field.onChange(chapter.id)}
+                      selectedChapterId={field.value}
+                      disabled={mutation.isPending}
                     />
                   </FormControl>
                   <FormMessage />

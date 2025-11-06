@@ -86,6 +86,7 @@ open class SpaceMarineResource {
         @PathParam("id") id: Int,
         @Valid update: SpaceMarineUpdateRequest,
     ): SpaceMarine {
+        logger.info("UPDATE REQUEST for ID $id: $update")
         // Validate existence of referenced entities only if provided in update
         validateCoordinatesAndChapter(
             coordinatesId = update.coordinatesId,
@@ -123,7 +124,6 @@ open class SpaceMarineResource {
         }
     }
 
-    // 1. Сумма значений health
     @GET
     @Path("/health/sum")
     fun calculateHealthSum(): Long {
@@ -131,7 +131,6 @@ open class SpaceMarineResource {
         return spaceMarineService.sumHealth()
     }
 
-    // 2. Среднее значение health
     @GET
     @Path("/health/average")
     fun calculateHealthAverage(): Double {
