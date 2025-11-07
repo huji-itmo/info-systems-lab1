@@ -28,7 +28,7 @@ data class SpaceMarineCreateRequest
         val health: Long,
         @JsonbProperty("loyal")
         val loyal: Boolean?,
-        @field:JsonbProperty("category")
+        @JsonbProperty("category")
         val category: String?,
         @field:NotNull
         @JsonbProperty("weaponType")
