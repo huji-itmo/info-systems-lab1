@@ -48,6 +48,7 @@ import { useChapters } from "@/hooks/use-chapter-hooks";
 import { Badge } from "@/components/ui/badge";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import { ChapterSelector } from "@/components/chapter-selector";
 
 export default function SpecialOperationsPage() {
   // Health stats state
@@ -354,37 +355,13 @@ export default function SpecialOperationsPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="chapterId" className="font-medium text-sm">Chapter ID</label>
-              <Select
-                value={chapterId}
-                onValueChange={setChapterId}
+              <label htmlFor="chapterId" className="font-medium text-sm">Chapter</label>
+              <ChapterSelector
+                onSelect={chapter => setChapterId(chapter.id.toString())}
+                selectedChapterId={Number(chapterId)}
                 disabled={isAssigning}
-              >
-                <SelectTrigger id="chapterId">
-                  <SelectValue placeholder="Select chapter or enter ID" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allChapters?.content.map((chapter) => (
-                    <SelectItem key={chapter.id} value={chapter.id.toString()}>
-                      {chapter.name} (ID: {chapter.id})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
 
-              <div className="relative mt-1">
-                <Input
-                  type="number"
-                  placeholder="Or enter chapter ID manually"
-                  value={chapterId}
-                  onChange={(e) => setChapterId(e.target.value)}
-                  disabled={isAssigning}
-                  min="1"
-                />
-                <span className="top-1/2 right-2 absolute text-muted-foreground text-sm -translate-y-1/2 transform">
-                  ID
-                </span>
-              </div>
             </div>
           </div>
 

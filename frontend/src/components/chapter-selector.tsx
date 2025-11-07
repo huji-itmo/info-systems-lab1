@@ -47,7 +47,7 @@ export function ChapterSelector({ onSelect, selectedChapterId, disabled }: Chapt
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   // Fixed: Proper query options typing with enabled state
-  const { data, isLoading, error } = useChapters(page, 10, {
+  const { data, isLoading, error } = useChapters(page, 5, {
     enabled: open, // Only fetch when dialog is open
   });
 
@@ -168,7 +168,7 @@ export function ChapterSelector({ onSelect, selectedChapterId, disabled }: Chapt
               </div>
 
               {data && data.totalPages > 1 && (
-                <div className="mt-4 pt-4 border-t">
+                <div className="flex justify-center mt-4">
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
@@ -177,36 +177,16 @@ export function ChapterSelector({ onSelect, selectedChapterId, disabled }: Chapt
                           className={page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                         />
                       </PaginationItem>
-                      {[...Array(Math.min(5, data.totalPages))].map((_, index) => {
-                        const pageIndex = page > 3 ? page - 3 + index : index;
-                        if (pageIndex >= data.totalPages) return null;
-
-                        return (
-                          <PaginationItem key={pageIndex}>
-                            <PaginationLink
-                              onClick={() => setPage(pageIndex)}
-                              isActive={page === pageIndex}
-                            >
-                              {pageIndex + 1}
-                            </PaginationLink>
-                          </PaginationItem>
-                        );
-                      })}
-                      {data.totalPages > 5 && (
-                        <PaginationItem>
-                          <span className="px-2 py-1">...</span>
-                        </PaginationItem>
-                      )}
-                      {data.totalPages > 5 && (
-                        <PaginationItem>
+                      {[...Array(data.totalPages)].map((_, index) => (
+                        <PaginationItem key={index}>
                           <PaginationLink
-                            onClick={() => setPage(data.totalPages - 1)}
-                            isActive={page === data.totalPages - 1}
+                            onClick={() => setPage(index)}
+                            isActive={page === index}
                           >
-                            {data.totalPages}
+                            {index + 1}
                           </PaginationLink>
                         </PaginationItem>
-                      )}
+                      ))}
                       <PaginationItem>
                         <PaginationNext
                           onClick={() => setPage(prev => Math.min(data.totalPages - 1, prev + 1))}
