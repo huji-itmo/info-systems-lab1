@@ -21,82 +21,54 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Pencil } from "lucide-react";
-import { SpaceMarine, useSpaceMarines } from "@/hooks/use-space-marine-hooks";
+import { Loader2, Pencil, Trash } from "lucide-react";
+import { SpaceMarine, useDeleteSpaceMarine, useSpaceMarines } from "@/hooks/use-space-marine-hooks";
 import { EditSpaceMarineDialog } from "./edit-space-marine-dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import { Axios, AxiosError } from "axios";
+import { toast } from "sonner";
 
 interface SpaceMarinesTableProps {
   pageSize?: number;
 }
 
 // Helper to generate page range with ellipsis
-function generatePaginationRange(
-  currentPage: number,
-  totalPages: number,
-  siblingCount = 1
-): (number | "...")[] {
-  const totalPageNumbers = siblingCount + 5;
 
-  if (totalPages <= totalPageNumbers) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
 
-  const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
-  const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
-
-  const shouldShowLeftEllipsis = leftSiblingIndex > 2;
-  const shouldShowRightEllipsis = rightSiblingIndex < totalPages - 1;
-
-  if (!shouldShowLeftEllipsis && shouldShowRightEllipsis) {
-    const leftItemCount = 3 + 2 * siblingCount;
-    return [
-      ...Array.from({ length: leftItemCount }, (_, i) => i + 1),
-      "...",
-      totalPages,
-    ];
-  }
-
-  if (shouldShowLeftEllipsis && !shouldShowRightEllipsis) {
-    const rightItemCount = 3 + 2 * siblingCount;
-    return [
-      1,
-      "...",
-      ...Array.from(
-        { length: rightItemCount },
-        (_, i) => totalPages - rightItemCount + 1 + i
-      ),
-    ];
-  }
-
-  return [
-    1,
-    "...",
-    ...Array.from(
-      { length: rightSiblingIndex - leftSiblingIndex + 1 },
-      (_, i) => leftSiblingIndex + i
-    ),
-    "...",
-    totalPages,
-  ];
-}
 
 export function SpaceMarinesTable({ pageSize = 10 }: SpaceMarinesTableProps) {
   const [page, setPage] = React.useState(0); // zero-based
   const [editingMarine, setEditingMarine] = React.useState<SpaceMarine | null>(null);
+  const [marineToDelete, setMarineToDelete] = React.useState<SpaceMarine | null>(null);
   const { data, isLoading, isError, error } = useSpaceMarines(page, pageSize);
 
-  const totalPages = data?.totalPages ?? 0;
-
-  const paginationRange = React.useMemo(() => {
-    return generatePaginationRange(page + 1, totalPages);
-  }, [page, totalPages]);
+  const deleteMutation = useDeleteSpaceMarine();
 
   const handleEditClick = (marine: SpaceMarine) => {
     setEditingMarine(marine);
   };
+  const handleDeleteClick = (marine: SpaceMarine) => {
+    setMarineToDelete(marine);
+  };
 
   const handleDialogClose = () => {
     setEditingMarine(null);
+    setMarineToDelete(null);
+  };
+
+  const confirmDelete = () => {
+    if (!marineToDelete) return;
+
+    deleteMutation.mutate(marineToDelete.id, {
+      onSuccess: () => {
+        setMarineToDelete(null);
+      },
+      onError: (error: AxiosError<{ error: string }>) => {
+        const errorMessage = error.response?.data?.error || "Failed to assign marine to chapter";
+
+        toast.error(errorMessage);
+      }
+    });
   };
 
   if (isError) {
@@ -151,15 +123,26 @@ export function SpaceMarinesTable({ pageSize = 10 }: SpaceMarinesTableProps) {
                     </TableCell>
                     <TableCell>{marine.category || "—"}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditClick(marine)}
-                        className="w-8 h-8"
-                      >
-                        <Pencil className="w-4 h-4" />
-                        <span className="sr-only">Edit {marine.name}</span>
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleEditClick(marine)}
+                          className="w-8 h-8"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          <span className="sr-only">Edit {marine.name}</span>
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteClick(marine)}
+                          className="hover:bg-destructive/10 w-8 h-8 text-destructive hover:text-destructive"
+                        >
+                          <Trash className="w-4 h-4" />
+                          {/* <span className="sr-only">Delete {marine.name}</span> */}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -175,60 +158,35 @@ export function SpaceMarinesTable({ pageSize = 10 }: SpaceMarinesTableProps) {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setPage((p) => Math.max(0, p - 1));
-                }}
-                isActive={!(page === 0 || isLoading)}
-              />
-            </PaginationItem>
-
-            {paginationRange.map((pageItem, index) => {
-              if (pageItem === "...") {
-                return (
-                  <PaginationItem key={`ellipsis-${index}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                );
-              }
-
-              const pageNum = pageItem as number;
-              const isActive = pageNum === page + 1;
-
-              return (
-                <PaginationItem key={pageNum}>
+      {data && data.totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage(prev => Math.max(0, prev - 1))}
+                  className={page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              {[...Array(data.totalPages)].map((_, index) => (
+                <PaginationItem key={index}>
                   <PaginationLink
-                    href="#"
-                    isActive={isActive}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setPage(pageNum - 1); // convert to zero-based
-                    }}
+                    onClick={() => setPage(index)}
+                    isActive={page === index}
                   >
-                    {pageNum}
+                    {index + 1}
                   </PaginationLink>
                 </PaginationItem>
-              );
-            })}
-
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setPage((p) => (p < totalPages - 1 ? p + 1 : p));
-                }}
-                isActive={!(page >= totalPages - 1 || isLoading)}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage(prev => Math.min(data.totalPages - 1, prev + 1))}
+                  className={page === data.totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
 
       {/* Optional: Total count footer */}
@@ -254,6 +212,42 @@ export function SpaceMarinesTable({ pageSize = 10 }: SpaceMarinesTableProps) {
           open={!!editingMarine}
           onOpenChange={handleDialogClose}
         />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {marineToDelete && (
+        <AlertDialog
+          open={!!marineToDelete}
+          onOpenChange={(open) => !open && setMarineToDelete(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete{" "}
+                <span className="font-medium">{marineToDelete.name}</span>?
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                disabled={deleteMutation.isPending}
+                className="bg-destructive hover:bg-destructive/90 focus:ring-destructive"
+              >
+                {deleteMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       )}
     </div>
   );
