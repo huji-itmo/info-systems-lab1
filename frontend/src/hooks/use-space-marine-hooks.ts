@@ -175,7 +175,7 @@ export const useUpdateSpaceMarine = () => {
 export const useDeleteSpaceMarine = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, AxiosError, number>({
+  return useMutation<void, AxiosError<{error: string}>, number>({
     mutationFn: (id) => apiClient.delete(`/space-marines/${id}`),
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['space-marines'] });
