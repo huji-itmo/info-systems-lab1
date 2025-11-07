@@ -89,6 +89,7 @@ jobs:
           "pkill java 2>/dev/null || true; \
           export POSTGRES_USER=${{ secrets.POSTGRES_USER }}; \
           export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}; \
+          export DB_HOST=pg \
           nohup java
             -Dorg.example.level=INFO \
             -Xmx1024m \
