@@ -8,11 +8,11 @@ import org.example.model.Weapon
 data class SpaceMarineUpdateRequest
     @JsonbCreator
     constructor(
-        @field:JsonbProperty("name") val name: String? = null,
-        @field:JsonbProperty("coordinatesId") val coordinatesId: Long? = null,
-        @field:JsonbProperty("chapterId") val chapterId: Long? = null,
-        @field:JsonbProperty("health") val health: Long? = null,
-        @field:JsonbProperty("loyal") val loyal: Boolean? = null,
-        @field:JsonbProperty("category") val category: String? = null,
-        @field:JsonbProperty("weaponType") val weaponType: String? = null,
+        @JsonbProperty("name") val name: String?,
+        @JsonbProperty("coordinatesId") val coordinatesId: Long?,
+        @JsonbProperty("chapterId") val chapterId: Long?,
+        @JsonbProperty("health") val health: Long?,
+        @JsonbProperty("loyal") val loyal: Boolean?,
+        @JsonbProperty("category") val category: String?,
+        @JsonbProperty("weaponType") val weaponType: String,
     )
