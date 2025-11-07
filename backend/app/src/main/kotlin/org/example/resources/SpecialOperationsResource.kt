@@ -1,4 +1,4 @@
-// package org.example.resources
+package org.example.resources
 
 import jakarta.enterprise.context.RequestScoped
 import jakarta.inject.Inject
@@ -59,7 +59,7 @@ open class SpecialOperationsResource {
     @GET
     @Path("/space-marines/filter-by-weapons")
     fun filterByWeaponTypes(
-        @QueryParam("weaponTypes") weaponTypesParam: List<String>,
+        @QueryParam("weaponTypes[]") weaponTypesParam: List<String>,
         @QueryParam("page") @DefaultValue("0") page: Int,
         @QueryParam("size") @DefaultValue("20") size: Int,
     ): Page<SpaceMarine> {
