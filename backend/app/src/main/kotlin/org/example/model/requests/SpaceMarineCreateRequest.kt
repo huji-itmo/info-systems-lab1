@@ -12,25 +12,25 @@ data class SpaceMarineCreateRequest
     @JsonbCreator
     constructor(
         @field:NotBlank
-        @field:JsonbProperty("name")
+        @JsonbProperty("name")
         val name: String,
         @field:NotNull
         @field:Positive
-        @field:JsonbProperty("coordinatesId")
+        @JsonbProperty("coordinatesId")
         val coordinatesId: Long,
         @field:NotNull
         @field:Positive
-        @field:JsonbProperty("chapterId")
+        @JsonbProperty("chapterId")
         val chapterId: Long,
         @field:NotNull
         @field:Positive
-        @field:JsonbProperty("health")
+        @JsonbProperty("health")
         val health: Long,
-        @field:JsonbProperty("loyal")
+        @JsonbProperty("loyal")
         val loyal: Boolean?,
         @field:JsonbProperty("category")
         val category: String?,
         @field:NotNull
-        @field:JsonbProperty("weaponType")
+        @JsonbProperty("weaponType")
         val weaponType: String,
     )
