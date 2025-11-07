@@ -86,9 +86,7 @@ export default function SpecialOperationsPage() {
       { chapterId: chapterNum, marineId: marineNum },
       {
         onSuccess: () => {
-          toast.success("Assignment successful!", {
-            description: `Space Marine #${marineNum} assigned to Chapter #${chapterNum}`,
-          });
+          toast.success(`Space Marine #${marineNum} assigned to Chapter #${chapterNum}`);
           setMarineId("");
           setChapterId("");
         },
@@ -96,9 +94,7 @@ export default function SpecialOperationsPage() {
           // Handle different error structures safely
           const errorMessage = error.response?.data?.error || "Failed to assign marine to chapter";
 
-          toast.error("Assignment failed", {
-            description: errorMessage,
-          });
+          toast.error(errorMessage);
         },
       }
     );

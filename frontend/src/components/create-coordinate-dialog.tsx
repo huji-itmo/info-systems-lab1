@@ -67,9 +67,7 @@ export function CreateCoordinateDialogContent({
         y: data.y
       });
 
-      toast.success("Coordinates created successfully!", {
-        description: `New coordinates at (${newCoordinate.x}, ${newCoordinate.y.toFixed(2)})`,
-      });
+      toast.success(`New coordinates at (${newCoordinate.x}, ${newCoordinate.y.toFixed(2)}`);
 
       onSuccess?.(newCoordinate);
       form.reset();
