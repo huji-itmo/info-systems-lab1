@@ -64,9 +64,7 @@ export function AddSpaceMarineDialogContent({ setOpen }: { setOpen: (open: boole
       queryClient.invalidateQueries({ queryKey: ["space-marines"] });
       queryClient.invalidateQueries({ queryKey: ["health"] });
 
-      toast.success("Space Marine created successfully", {
-        description: "A new battle-brother has joined the Chapter",
-      });
+      toast.success("Space Marine created successfully");
 
       form.reset();
       setOpen(false);
@@ -75,10 +73,7 @@ export function AddSpaceMarineDialogContent({ setOpen }: { setOpen: (open: boole
       const errorMessage = error.response?.data?.error ||
         "Failed to create Space Marine. Please check your inputs and try again.";
 
-      toast.error("Creation failed", {
-        description: errorMessage,
-        duration: 5000,
-      });
+      toast.error(errorMessage);
 
       console.error("Mutation failed:", error);
     },

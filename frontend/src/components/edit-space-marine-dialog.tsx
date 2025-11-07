@@ -81,9 +81,7 @@ export function EditSpaceMarineDialog({ marine, open, onOpenChange }: EditSpaceM
         ...data,
       });
 
-      toast.success("Space Marine updated successfully!", {
-        description: `${data.name} has been updated`,
-      });
+      toast.success(`${data.name} has been updated`);
 
       onOpenChange(false);
       form.reset();

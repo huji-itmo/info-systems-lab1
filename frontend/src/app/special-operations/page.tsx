@@ -34,7 +34,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Loader2, RefreshCw, CheckCircle, AlertCircle } from "lucide-react";
+import { Loader2, RefreshCw, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import {
   useHealthSum,
@@ -47,6 +47,7 @@ import {
 import { useChapters } from "@/hooks/use-chapter-hooks";
 import { Badge } from "@/components/ui/badge";
 import { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 
 export default function SpecialOperationsPage() {
   // Health stats state
@@ -86,9 +87,7 @@ export default function SpecialOperationsPage() {
       { chapterId: chapterNum, marineId: marineNum },
       {
         onSuccess: () => {
-          toast.success("Assignment successful!", {
-            description: `Space Marine #${marineNum} assigned to Chapter #${chapterNum}`,
-          });
+          toast.success(`Space Marine #${marineNum} assigned to Chapter #${chapterNum}`);
           setMarineId("");
           setChapterId("");
         },
@@ -96,9 +95,7 @@ export default function SpecialOperationsPage() {
           // Handle different error structures safely
           const errorMessage = error.response?.data?.error || "Failed to assign marine to chapter";
 
-          toast.error("Assignment failed", {
-            description: errorMessage,
-          });
+          toast.error(errorMessage);
         },
       }
     );
@@ -112,10 +109,17 @@ export default function SpecialOperationsPage() {
     );
     setWeaponPage(0); // Reset to first page when filter changes
   };
+  const router = useRouter();
 
   return (
     <div className="mx-auto px-4 py-8 container">
-      <h1 className="mb-8 font-bold text-3xl">Special Operations</h1>
+      <div className="flex gap-3">
+        <Button onClick={() => router.push("/")}>
+          <ArrowLeft></ArrowLeft>
+          Back
+        </Button>
+        <h1 className="mb-8 font-bold text-3xl">Special Operations</h1>
+      </div>
 
       {/* Health Statistics Section */}
       <div className="gap-6 grid grid-cols-1 md:grid-cols-2 mb-12">
