@@ -5,7 +5,6 @@ import jakarta.json.bind.annotation.JsonbProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
-import org.example.JsonDeserializable
 import org.example.model.AstartesCategory
 import org.example.model.Weapon
 

@@ -90,7 +90,8 @@ jobs:
           export POSTGRES_USER=${{ secrets.POSTGRES_USER }}; \
           export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}; \
           export DB_HOST=pg \
-          nohup java
+          echo --port${{ secrets.DEPLOY_PORT || 8080 }} > ~/info-systems-lab1/payara.log \
+          nohup java \
             -Dorg.example.level=INFO \
             -Xmx1024m \
             -Xms512m \
