@@ -33,55 +33,8 @@ interface SpaceMarinesTableProps {
 }
 
 // Helper to generate page range with ellipsis
-function generatePaginationRange(
-  currentPage: number,
-  totalPages: number,
-  siblingCount = 1
-): (number | "...")[] {
-  const totalPageNumbers = siblingCount + 5;
 
-  if (totalPages <= totalPageNumbers) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
 
-  const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
-  const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
-
-  const shouldShowLeftEllipsis = leftSiblingIndex > 2;
-  const shouldShowRightEllipsis = rightSiblingIndex < totalPages - 1;
-
-  if (!shouldShowLeftEllipsis && shouldShowRightEllipsis) {
-    const leftItemCount = 3 + 2 * siblingCount;
-    return [
-      ...Array.from({ length: leftItemCount }, (_, i) => i + 1),
-      "...",
-      totalPages,
-    ];
-  }
-
-  if (shouldShowLeftEllipsis && !shouldShowRightEllipsis) {
-    const rightItemCount = 3 + 2 * siblingCount;
-    return [
-      1,
-      "...",
-      ...Array.from(
-        { length: rightItemCount },
-        (_, i) => totalPages - rightItemCount + 1 + i
-      ),
-    ];
-  }
-
-  return [
-    1,
-    "...",
-    ...Array.from(
-      { length: rightSiblingIndex - leftSiblingIndex + 1 },
-      (_, i) => leftSiblingIndex + i
-    ),
-    "...",
-    totalPages,
-  ];
-}
 
 export function SpaceMarinesTable({ pageSize = 10 }: SpaceMarinesTableProps) {
   const [page, setPage] = React.useState(0); // zero-based
@@ -89,10 +42,6 @@ export function SpaceMarinesTable({ pageSize = 10 }: SpaceMarinesTableProps) {
   const [marineToDelete, setMarineToDelete] = React.useState<SpaceMarine | null>(null);
   const { data, isLoading, isError, error } = useSpaceMarines(page, pageSize);
 
-  const totalPages = data?.totalPages ?? 0;
-  const paginationRange = React.useMemo(() => {
-    return generatePaginationRange(page + 1, totalPages);
-  }, [page, totalPages]);
   const deleteMutation = useDeleteSpaceMarine();
 
   const handleEditClick = (marine: SpaceMarine) => {
@@ -209,60 +158,35 @@ export function SpaceMarinesTable({ pageSize = 10 }: SpaceMarinesTableProps) {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setPage((p) => Math.max(0, p - 1));
-                }}
-                isActive={!(page === 0 || isLoading)}
-              />
-            </PaginationItem>
-
-            {paginationRange.map((pageItem, index) => {
-              if (pageItem === "...") {
-                return (
-                  <PaginationItem key={`ellipsis-${index}`}>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                );
-              }
-
-              const pageNum = pageItem as number;
-              const isActive = pageNum === page + 1;
-
-              return (
-                <PaginationItem key={pageNum}>
+      {data && data.totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage(prev => Math.max(0, prev - 1))}
+                  className={page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              {[...Array(data.totalPages)].map((_, index) => (
+                <PaginationItem key={index}>
                   <PaginationLink
-                    href="#"
-                    isActive={isActive}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setPage(pageNum - 1); // convert to zero-based
-                    }}
+                    onClick={() => setPage(index)}
+                    isActive={page === index}
                   >
-                    {pageNum}
+                    {index + 1}
                   </PaginationLink>
                 </PaginationItem>
-              );
-            })}
-
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setPage((p) => (p < totalPages - 1 ? p + 1 : p));
-                }}
-                isActive={!(page >= totalPages - 1 || isLoading)}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage(prev => Math.min(data.totalPages - 1, prev + 1))}
+                  className={page === data.totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
 
       {/* Optional: Total count footer */}
