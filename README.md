@@ -1,3 +1,21 @@
+for running dev env:
+
+```
+cd frontend
+bun run dev
+cd ..
+
+cd backend
+docker compose up
+sh run_local.sh
+```
+
+for running prod env:
+
+```
+docker compose up
+```
+
 Реализовать информационную систему, которая позволяет взаимодействовать с объектами класса SpaceMarine, описание которого приведено ниже:
 
 ```
