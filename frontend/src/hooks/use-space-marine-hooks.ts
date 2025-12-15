@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { apiClient } from '@/lib/apiClient';
+import { PaginatedResponse } from '@/types/api';
 
 // ===== TYPE DEFINITIONS =====
 export type WeaponType =
@@ -43,14 +44,6 @@ export interface Chapter {
   id?: number;
   name: string;
   marinesCount: number;
-}
-
-export interface PaginatedResponse<T> {
-  content: T[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
 }
 
 // ===== SPECIAL OPERATIONS HOOKS =====
@@ -114,7 +107,10 @@ export const useAssignMarineToChapter = () => {
 export const useSpaceMarines = (
   page = 0,
   size = 20,
-  options?: UseQueryOptions<PaginatedResponse<SpaceMarine>, AxiosError>,
+  options: Omit<
+    UseQueryOptions<PaginatedResponse<SpaceMarine>, AxiosError>,
+    'queryKey' | 'queryFn'
+  > = {},
 ) =>
   useQuery<PaginatedResponse<SpaceMarine>, AxiosError>({
     queryKey: ['space-marines', { page, size }],
@@ -175,7 +171,7 @@ export const useUpdateSpaceMarine = () => {
 export const useDeleteSpaceMarine = () => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, AxiosError<{error: string}>, number>({
+  return useMutation<void, AxiosError<{ error: string }>, number>({
     mutationFn: (id) => apiClient.delete(`/space-marines/${id}`),
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['space-marines'] });
